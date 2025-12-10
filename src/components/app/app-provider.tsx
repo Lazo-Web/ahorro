@@ -50,13 +50,15 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   // Save data to localStorage whenever it changes
   useEffect(() => {
     try {
-      localStorage.setItem('purchases', JSON.stringify(purchases));
-      localStorage.setItem('pantry', JSON.stringify(pantry));
-      localStorage.setItem('shoppingList', JSON.stringify(shoppingList));
+      if(!isLoading) {
+        localStorage.setItem('purchases', JSON.stringify(purchases));
+        localStorage.setItem('pantry', JSON.stringify(pantry));
+        localStorage.setItem('shoppingList', JSON.stringify(shoppingList));
+      }
     } catch (error) {
        console.error("Failed to save data to localStorage", error);
     }
-  }, [purchases, pantry, shoppingList]);
+  }, [purchases, pantry, shoppingList, isLoading]);
 
    const addShoppingListItem = useCallback(
     (name: string) => {
@@ -89,14 +91,10 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         setShoppingList(prevShoppingList => {
           const isAlreadyInShoppingList = prevShoppingList.some(li => li.name.toLowerCase() === itemRemoved!.name.toLowerCase());
           if (!isAlreadyInShoppingList) {
-            toast({
-                title: "Added to Shopping List",
-                description: `${itemRemoved.name} has been added to your shopping list.`
-            });
-            const newItem: ShoppingListItem = {
+             const newItem: ShoppingListItem = {
               id: Date.now().toString(),
               userId: 'local-user',
-              name: itemRemoved.name,
+              name: itemRemoved!.name,
               isCompleted: false,
             };
             return [...prevShoppingList, newItem];
@@ -104,7 +102,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
           return prevShoppingList;
         });
       }
-    }, [toast]);
+    }, []);
 
   const addPurchase = useCallback(
     (item: Omit<Purchase, 'id' | 'userId'>) => {

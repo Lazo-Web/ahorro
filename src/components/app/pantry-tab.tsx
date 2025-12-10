@@ -36,8 +36,8 @@ export function PantryTab() {
   const handleRemove = (itemId: string, itemName: string) => {
     removeFromPantry(itemId);
     toast({
-      title: 'Item Used',
-      description: `${itemName} has been removed from your pantry.`,
+      title: 'Item Used & Added to List',
+      description: `${itemName} was removed from your pantry and added to your shopping list.`,
     });
   };
 

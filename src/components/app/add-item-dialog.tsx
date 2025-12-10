@@ -42,6 +42,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
 const formSchema = z.object({
+  barcode: z.string().nonempty({ message: 'Barcode is required.' }),
   item: z.string().min(2, { message: 'Item name must be at least 2 characters.' }),
   price: z.coerce.number().positive({ message: 'Price must be a positive number.' }),
   supermarket: z.string().min(1, { message: 'Please select a supermarket.' }),
@@ -63,6 +64,7 @@ export function AddItemDialog() {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      barcode: '',
       item: '',
       price: 0,
       supermarket: '',
@@ -97,6 +99,8 @@ export function AddItemDialog() {
 
   const handleSimulateScan = () => {
     // In a real app, a barcode scanner library would return data here.
+    const simulatedBarcode = Math.random().toString().slice(2, 15);
+    form.setValue('barcode', simulatedBarcode);
     // We'll simulate it and move to the form.
     setStep('form');
   };
@@ -108,10 +112,6 @@ export function AddItemDialog() {
       expiryDate: values.expiryDate ? values.expiryDate.toISOString().split('T')[0] : undefined,
     };
     addPurchase(purchaseData);
-    toast({
-      title: 'Item Added',
-      description: `${values.item} has been added to your pantry and purchase history.`,
-    });
     form.reset();
     setStep('scan');
     setOpen(false);
@@ -172,11 +172,24 @@ export function AddItemDialog() {
             <DialogHeader>
               <DialogTitle>Add New Purchase</DialogTitle>
               <DialogDescription>
-                Enter the product details.
+                Enter the product details. The barcode has been filled automatically.
               </DialogDescription>
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 py-2 max-h-[70vh] overflow-y-auto px-1">
+                <FormField
+                  control={form.control}
+                  name="barcode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Barcode</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Scanned barcode" {...field} readOnly className="bg-muted/50" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   control={form.control}
                   name="item"

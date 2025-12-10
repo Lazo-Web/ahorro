@@ -22,6 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Badge } from '../ui/badge';
 import { ScrollArea } from '../ui/scroll-area';
 import { format, differenceInDays, isBefore, addDays, parseISO } from 'date-fns';
+import { es } from 'date-fns/locale';
 import {
   Tooltip,
   TooltipContent,
@@ -35,10 +36,6 @@ export function PantryTab() {
 
   const handleRemove = (itemId: string, itemName: string) => {
     removeFromPantry(itemId);
-    toast({
-      title: 'Item Used & Added to List',
-      description: `${itemName} was removed from your pantry and added to your shopping list.`,
-    });
   };
 
   const getPurchaseDetails = (purchaseId: string) => {
@@ -54,12 +51,12 @@ export function PantryTab() {
     const daysUntilExpiry = differenceInDays(expiry, today);
 
     if (isBefore(expiry, today)) {
-      return { status: 'expired', message: `Expired ${Math.abs(daysUntilExpiry)} days ago` };
+      return { status: 'expired', message: `Caducado hace ${Math.abs(daysUntilExpiry)} días` };
     }
     if (daysUntilExpiry <= 3) {
-      return { status: 'expiring-soon', message: `Expires in ${daysUntilExpiry + 1} day(s)` };
+      return { status: 'expiring-soon', message: `Caduca en ${daysUntilExpiry + 1} día(s)` };
     }
-    return { status: 'fresh', message: `Expires on ${format(expiry, 'dd/MM/yyyy')}` };
+    return { status: 'fresh', message: `Caduca el ${format(expiry, 'dd/MM/yyyy', { locale: es })}` };
   };
 
   const sortedPantry = [...pantry].sort((a, b) => {
@@ -71,8 +68,8 @@ export function PantryTab() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>My Pantry</CardTitle>
-        <CardDescription>Here are all the items you currently have in stock, sorted by expiration date.</CardDescription>
+        <CardTitle>Mi Despensa</CardTitle>
+        <CardDescription>Aquí están todos los artículos que tienes en stock, ordenados por fecha de caducidad.</CardDescription>
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-[60vh]">
@@ -80,11 +77,11 @@ export function PantryTab() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Item</TableHead>
-                  <TableHead>Supermarket</TableHead>
-                  <TableHead>Purchase Date</TableHead>
-                  <TableHead>Expiration</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
+                  <TableHead>Artículo</TableHead>
+                  <TableHead>Supermercado</TableHead>
+                  <TableHead>Fecha de Compra</TableHead>
+                  <TableHead>Caducidad</TableHead>
+                  <TableHead className="text-right">Acción</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -99,7 +96,7 @@ export function PantryTab() {
                           {purchase ? <Badge variant="secondary">{purchase.supermarket}</Badge> : 'N/A'}
                         </TableCell>
                         <TableCell>
-                          {purchase ? format(parseISO(purchase.date), 'dd/MM/yyyy') : 'N/A'}
+                          {purchase ? format(parseISO(purchase.date), 'dd/MM/yyyy', { locale: es }) : 'N/A'}
                         </TableCell>
                         <TableCell>
                            {expiryInfo.status !== 'none' ? (
@@ -124,7 +121,7 @@ export function PantryTab() {
                             variant="ghost"
                             size="icon"
                             onClick={() => handleRemove(item.id, item.name)}
-                            aria-label={`Use up ${item.name}`}
+                            aria-label={`Usar ${item.name}`}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -135,7 +132,7 @@ export function PantryTab() {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={5} className="h-24 text-center">
-                      Your pantry is empty. Scan items to add them.
+                      Tu despensa está vacía. Escanea artículos para añadirlos.
                     </TableCell>
                   </TableRow>
                 )}

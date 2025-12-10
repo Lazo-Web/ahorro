@@ -6,7 +6,6 @@ import { DashboardTab } from '@/components/app/dashboard-tab';
 import { PantryTab } from '@/components/app/pantry-tab';
 import { ShoppingListTab } from '@/components/app/shopping-list-tab';
 import { Archive, LayoutDashboard, ShoppingCart } from 'lucide-react';
-import { AppProvider } from './app-provider';
 import { useState, useEffect } from 'react';
 
 export function AppShell() {
@@ -16,24 +15,27 @@ export function AppShell() {
     setIsClient(true);
   }, []);
 
+  if (!isClient) {
+    return null;
+  }
+
   return (
       <div className="min-h-screen w-full bg-background">
         <AppHeader />
         <main className="p-4 md:p-6 lg:p-8">
-          {isClient && (
             <Tabs defaultValue="dashboard" className="w-full">
               <TabsList className="grid w-full max-w-md grid-cols-3 mx-auto mb-6">
                 <TabsTrigger value="dashboard">
                   <LayoutDashboard className="mr-2" />
-                  Dashboard
+                  Panel
                 </TabsTrigger>
                 <TabsTrigger value="pantry">
                   <Archive className="mr-2" />
-                  Pantry
+                  Despensa
                 </TabsTrigger>
                 <TabsTrigger value="shopping-list">
                   <ShoppingCart className="mr-2" />
-                  Shopping List
+                  Lista de Compra
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="dashboard">
@@ -46,7 +48,6 @@ export function AppShell() {
                 <ShoppingListTab />
               </TabsContent>
             </Tabs>
-          )}
         </main>
       </div>
   );

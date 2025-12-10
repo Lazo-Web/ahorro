@@ -40,12 +40,13 @@ import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar } from '../ui/calendar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 const formSchema = z.object({
-  barcode: z.string().nonempty({ message: 'Barcode is required.' }),
-  item: z.string().min(2, { message: 'Item name must be at least 2 characters.' }),
-  price: z.coerce.number().positive({ message: 'Price must be a positive number.' }),
-  supermarket: z.string().min(1, { message: 'Please select a supermarket.' }),
+  barcode: z.string().nonempty({ message: 'El código de barras es requerido.' }),
+  item: z.string().min(2, { message: 'El nombre del producto debe tener al menos 2 caracteres.' }),
+  price: z.coerce.number().positive({ message: 'El precio debe ser un número positivo.' }),
+  supermarket: z.string().min(1, { message: 'Por favor, selecciona un supermercado.' }),
   calories: z.coerce.number().int().min(0).optional(),
   expiryDate: z.date().optional(),
 });
@@ -143,7 +144,7 @@ export function AddItemDialog() {
   }, [open, step, isScannerSupported, form]);
 
   const handleManualEntry = () => {
-    form.setValue('barcode', 'MANUAL-ENTRY');
+    form.setValue('barcode', 'ENTRADA-MANUAL');
     setStep('form');
   };
 
@@ -177,16 +178,16 @@ export function AddItemDialog() {
       <DialogTrigger asChild>
         <Button>
           <PlusCircle />
-          Scan Item
+          Escanear Artículo
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         {step === 'scan' ? (
           <>
             <DialogHeader>
-              <DialogTitle>Scan Barcode</DialogTitle>
+              <DialogTitle>Escanear Código de Barras</DialogTitle>
               <DialogDescription>
-                Point your camera at a product's barcode to add it.
+                Apunta la cámara al código de barras de un producto para añadirlo.
               </DialogDescription>
             </DialogHeader>
             <div className="flex flex-col items-center gap-4 py-4">
@@ -197,34 +198,34 @@ export function AddItemDialog() {
                   
                   {isScannerSupported === false && (
                     <Alert variant="destructive" className="absolute bottom-4 w-5/6">
-                      <AlertTitle>Scanner Not Supported</AlertTitle>
+                      <AlertTitle>Escáner no Soportado</AlertTitle>
                       <AlertDescription>
-                        Your browser doesn't support barcode scanning.
+                        Tu navegador no es compatible con el escaneo de códigos de barras.
                       </AlertDescription>
                     </Alert>
                   )}
 
                  {hasCameraPermission === false && (
                    <Alert variant="destructive" className="absolute bottom-4 w-5/6">
-                     <AlertTitle>Camera Access Denied</AlertTitle>
+                     <AlertTitle>Acceso a la Cámara Denegado</AlertTitle>
                      <AlertDescription>
-                       Enable camera permissions to use the scanner.
+                       Activa los permisos de la cámara para usar el escáner.
                      </AlertDescription>
                    </Alert>
                  )}
                </div>
               <Button onClick={handleManualEntry} className="w-full">
                 <ScanLine className="mr-2"/>
-                Enter Manually
+                Introducir Manualmente
               </Button>
             </div>
           </>
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle>Add New Purchase</DialogTitle>
+              <DialogTitle>Añadir Nueva Compra</DialogTitle>
               <DialogDescription>
-                Enter the product details. The barcode has been filled automatically.
+                Introduce los detalles del producto. El código de barras se ha rellenado automáticamente.
               </DialogDescription>
             </DialogHeader>
             <Form {...form}>
@@ -234,9 +235,9 @@ export function AddItemDialog() {
                   name="barcode"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Barcode</FormLabel>
+                      <FormLabel>Código de Barras</FormLabel>
                       <FormControl>
-                        <Input placeholder="Scanned barcode" {...field} readOnly className="bg-muted/50" />
+                        <Input placeholder="Código de barras escaneado" {...field} readOnly className="bg-muted/50" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -247,9 +248,9 @@ export function AddItemDialog() {
                   name="item"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Product Name</FormLabel>
+                      <FormLabel>Nombre del Producto</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., Organic Milk" {...field} />
+                        <Input placeholder="Ej: Leche Entera" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -261,9 +262,9 @@ export function AddItemDialog() {
                     name="price"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Price (€)</FormLabel>
+                        <FormLabel>Precio (€)</FormLabel>
                         <FormControl>
-                          <Input type="number" step="0.01" placeholder="e.g., 1.99" {...field} />
+                          <Input type="number" step="0.01" placeholder="Ej: 1.99" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -274,9 +275,9 @@ export function AddItemDialog() {
                     name="calories"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Calories</FormLabel>
+                        <FormLabel>Calorías</FormLabel>
                         <FormControl>
-                          <Input type="number" placeholder="e.g., 150" {...field} />
+                          <Input type="number" placeholder="Ej: 150" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -288,7 +289,7 @@ export function AddItemDialog() {
                     name="expiryDate"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel>Expiration Date</FormLabel>
+                        <FormLabel>Fecha de Caducidad</FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
@@ -300,9 +301,9 @@ export function AddItemDialog() {
                                 )}
                               >
                                 {field.value ? (
-                                  format(field.value, "PPP")
+                                  format(field.value, "PPP", { locale: es })
                                 ) : (
-                                  <span>Pick a date</span>
+                                  <span>Elige una fecha</span>
                                 )}
                                 <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                               </Button>
@@ -310,6 +311,7 @@ export function AddItemDialog() {
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0" align="start">
                             <Calendar
+                              locale={es}
                               mode="single"
                               selected={field.value}
                               onSelect={field.onChange}
@@ -321,7 +323,7 @@ export function AddItemDialog() {
                           </PopoverContent>
                         </Popover>
                         <FormDescription>
-                          Optional. Used for expiration alerts.
+                          Opcional. Se usa para las alertas de caducidad.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -332,11 +334,11 @@ export function AddItemDialog() {
                   name="supermarket"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Supermarket</FormLabel>
+                      <FormLabel>Supermercado</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select a supermarket" />
+                            <SelectValue placeholder="Selecciona un supermercado" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -353,7 +355,7 @@ export function AddItemDialog() {
                   <Button type="submit" disabled={form.formState.isSubmitting} className="w-full">
                     {form.formState.isSubmitting ? (
                        <Loader2 className="animate-spin" />
-                    ) : "Add Item to Pantry"}
+                    ) : "Añadir a la Despensa"}
                   </Button>
                 </DialogFooter>
               </form>

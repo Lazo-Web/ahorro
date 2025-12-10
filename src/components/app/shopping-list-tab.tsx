@@ -34,18 +34,18 @@ export function ShoppingListTab() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>My Shopping List</CardTitle>
-        <CardDescription>Manage items you need to buy on your next trip.</CardDescription>
+        <CardTitle>Mi Lista de la Compra</CardTitle>
+        <CardDescription>Gestiona los artículos que necesitas comprar en tu próxima visita.</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleAddItem} className="flex items-center gap-2 mb-6">
           <Input
             value={newItemName}
             onChange={(e) => setNewItemName(e.target.value)}
-            placeholder="e.g., Olive oil"
-            aria-label="New shopping list item"
+            placeholder="Ej: Aceite de oliva"
+            aria-label="Nuevo artículo para la lista de la compra"
           />
-          <Button type="submit" size="icon" aria-label="Add item">
+          <Button type="submit" size="icon" aria-label="Añadir artículo">
             <Plus className="h-4 w-4" />
           </Button>
         </form>
@@ -60,7 +60,7 @@ export function ShoppingListTab() {
                         id={`item-${item.id}`}
                         checked={item.isCompleted}
                         onCheckedChange={() => toggleShoppingListItem(item.id, item.isCompleted)}
-                        aria-label={`Mark ${item.name} as complete`}
+                        aria-label={`Marcar ${item.name} como completado`}
                       />
                       <label
                         htmlFor={`item-${item.id}`}
@@ -77,13 +77,13 @@ export function ShoppingListTab() {
                   ))}
                 </div>
               ) : (
-                <p className="text-muted-foreground text-center text-sm py-4">Your shopping list is empty.</p>
+                <p className="text-muted-foreground text-center text-sm py-4">Tu lista de la compra está vacía.</p>
               )}
 
               {completedItems.length > 0 && (
                 <div>
                   <Separator className="my-4" />
-                  <h3 className="mb-2 text-sm font-semibold text-muted-foreground">Completed Items</h3>
+                  <h3 className="mb-2 text-sm font-semibold text-muted-foreground">Artículos Completados</h3>
                   <div className="space-y-2">
                     {completedItems.map((item) => (
                       <div key={item.id} className="flex items-center gap-3 rounded-md p-2">
@@ -91,7 +91,7 @@ export function ShoppingListTab() {
                           id={`item-${item.id}`}
                           checked={item.isCompleted}
                           onCheckedChange={() => toggleShoppingListItem(item.id, item.isCompleted)}
-                          aria-label={`Mark ${item.name} as incomplete`}
+                          aria-label={`Marcar ${item.name} como no completado`}
                         />
                         <label
                           htmlFor={`item-${item.id}`}
@@ -112,7 +112,7 @@ export function ShoppingListTab() {
 
               {shoppingList.length === 0 && pendingItems.length === 0 && (
                  <div className="h-24 flex items-center justify-center">
-                    <p className="text-muted-foreground text-center text-sm">Add items to your shopping list using the field above.</p>
+                    <p className="text-muted-foreground text-center text-sm">Añade artículos a tu lista de la compra usando el campo de arriba.</p>
                  </div>
               )}
           </div>
@@ -121,7 +121,7 @@ export function ShoppingListTab() {
       {completedItems.length > 0 && (
         <CardFooter>
           <Button variant="outline" onClick={clearCompletedItems} className="w-full">
-            <Trash2 className="mr-2 h-4 w-4" /> Clear Completed Items
+            <Trash2 className="mr-2 h-4 w-4" /> Limpiar Artículos Completados
           </Button>
         </CardFooter>
       )}

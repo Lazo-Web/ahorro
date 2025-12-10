@@ -8,7 +8,7 @@ export async function getSpendingPrediction(input: PredictMonthlySpendingInput):
   if (input.purchaseHistory.length < 3) {
     return {
       success: false,
-      error: 'Please add at least 3 purchases to get a prediction.'
+      error: 'Añade al menos 3 compras para obtener una predicción.'
     };
   }
   
@@ -17,6 +17,6 @@ export async function getSpendingPrediction(input: PredictMonthlySpendingInput):
     return { success: true, data: result };
   } catch (error) {
     console.error('Error in getSpendingPrediction:', error);
-    return { success: false, error: 'An unexpected error occurred while generating the prediction.' };
+    return { success: false, error: 'Ocurrió un error inesperado al generar la predicción.' };
   }
 }

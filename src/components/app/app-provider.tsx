@@ -40,8 +40,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       console.error("Failed to load data from localStorage", error);
       toast({
         variant: "destructive",
-        title: "Could not load data",
-        description: "There was an error reading your saved data.",
+        title: "No se pudieron cargar los datos",
+        description: "Hubo un error al leer tus datos guardados.",
       });
     }
     setIsLoading(false);
@@ -88,6 +88,10 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       });
       
       if (itemRemoved) {
+         toast({
+          title: 'Artículo Consumido y Añadido a la Lista',
+          description: `${itemRemoved.name} se ha eliminado de tu despensa y añadido a la lista de la compra.`,
+        });
         setShoppingList(prevShoppingList => {
           const isAlreadyInShoppingList = prevShoppingList.some(li => li.name.toLowerCase() === itemRemoved!.name.toLowerCase());
           if (!isAlreadyInShoppingList) {
@@ -102,7 +106,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
           return prevShoppingList;
         });
       }
-    }, []);
+    }, [toast]);
 
   const addPurchase = useCallback(
     (item: Omit<Purchase, 'id' | 'userId'>) => {
@@ -115,8 +119,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         if (existingPantryItem) {
           toast({
             variant: 'destructive',
-            title: 'Item already in pantry',
-            description: `${item.item} is already in your pantry. Use it up before adding another one.`,
+            title: 'El artículo ya está en la despensa',
+            description: `${item.item} ya está en tu despensa. Termínalo antes de añadir otro.`,
           });
           return currentPantry; // Return current pantry without changes
         }
@@ -141,8 +145,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         setPurchases(prevPurchases => [...prevPurchases, newPurchase]);
         
         toast({
-          title: 'Item Added',
-          description: `${item.item} has been added to your pantry and purchase history.`,
+          title: 'Artículo Añadido',
+          description: `${item.item} ha sido añadido a tu despensa y al historial de compras.`,
         });
 
         return [...currentPantry, newPantryItem];

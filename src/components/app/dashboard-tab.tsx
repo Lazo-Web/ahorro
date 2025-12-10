@@ -29,6 +29,7 @@ import { Badge } from '../ui/badge';
 import { ScrollArea } from '../ui/scroll-area';
 import { format, parseISO } from 'date-fns';
 import { Skeleton } from '../ui/skeleton';
+import { es } from 'date-fns/locale';
 
 export function DashboardTab() {
   const { purchases, pantry, shoppingList, isLoading: isAppLoading } = useAppContext();
@@ -48,8 +49,8 @@ export function DashboardTab() {
     } else {
       toast({
         variant: 'destructive',
-        title: 'Prediction Failed',
-        description: result.error || 'An unknown error occurred.',
+        title: 'Fallo en la Predicción',
+        description: result.error || 'Ocurrió un error desconocido.',
       });
     }
     setIsPredictionLoading(false);
@@ -96,9 +97,9 @@ export function DashboardTab() {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
             <div className="absolute bottom-0 left-0 p-6">
-              <h2 className="text-2xl font-bold text-white md:text-3xl font-headline">Welcome to Your Smart Pantry</h2>
+              <h2 className="text-2xl font-bold text-white md:text-3xl font-headline">Bienvenido a tu Despensa Inteligente</h2>
               <p className="mt-2 text-primary-foreground/80 max-w-xl">
-                Scan items, manage your pantry, and let AI help you save money on your next grocery run.
+                Escanea artículos, gestiona tu despensa y deja que la IA te ayude a ahorrar en tu próxima compra.
               </p>
             </div>
           </div>
@@ -108,44 +109,44 @@ export function DashboardTab() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
+            <CardTitle className="text-sm font-medium">Gasto Total</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">€{totalSpent.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">in {purchases.length} transactions</p>
+            <p className="text-xs text-muted-foreground">en {purchases.length} compras</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Items in Pantry</CardTitle>
+            <CardTitle className="text-sm font-medium">Artículos en Despensa</CardTitle>
             <Archive className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{pantry.length}</div>
-            <p className="text-xs text-muted-foreground">items currently in stock</p>
+            <p className="text-xs text-muted-foreground">artículos en stock</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Shopping List</CardTitle>
+            <CardTitle className="text-sm font-medium">Lista de Compra</CardTitle>
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{shoppingList.filter(i => !i.isCompleted).length}</div>
-            <p className="text-xs text-muted-foreground">items to buy</p>
+            <p className="text-xs text-muted-foreground">artículos por comprar</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">AI Budget Helper</CardTitle>
+            <CardTitle className="text-sm font-medium">Asistente IA</CardTitle>
             <BrainCircuit className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <Button size="sm" className="w-full" onClick={handlePrediction} disabled={isPredictionLoading}>
-              {isPredictionLoading ? <Loader2 className="animate-spin"/> : <><Lightbulb className="mr-2 h-4 w-4"/> Predict Now</>}
+              {isPredictionLoading ? <Loader2 className="animate-spin"/> : <><Lightbulb className="mr-2 h-4 w-4"/> Predecir Ahora</>}
             </Button>
-            <p className="text-xs text-muted-foreground mt-2 text-center">Analyze your spending habits</p>
+            <p className="text-xs text-muted-foreground mt-2 text-center">Analiza tus hábitos de compra</p>
           </CardContent>
         </Card>
       </div>
@@ -153,25 +154,25 @@ export function DashboardTab() {
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="flex flex-col">
           <CardHeader>
-            <CardTitle>AI Spending Analysis</CardTitle>
+            <CardTitle>Análisis de Gastos con IA</CardTitle>
             <CardDescription>
-              Let our AI predict your monthly spending and give you savings tips.
+              Deja que nuestra IA prediga tus gastos mensuales y te dé consejos de ahorro.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex-grow flex items-center justify-center">
             {isPredictionLoading ? (
               <div className="flex flex-col items-center gap-4 text-center">
                 <Loader2 className="h-12 w-12 animate-spin text-primary"/>
-                <p className="text-muted-foreground">Analyzing your purchase history...</p>
+                <p className="text-muted-foreground">Analizando tu historial de compras...</p>
               </div>
             ) : prediction ? (
               <div className="space-y-4 text-center">
-                <CardTitle className="text-base font-medium">Predicted Monthly Spending</CardTitle>
+                <CardTitle className="text-base font-medium">Gasto Mensual Estimado</CardTitle>
                 <p className="text-4xl font-bold text-primary">€{prediction.predictedSpending.toFixed(2)}</p>
                 <Card className="bg-secondary text-left">
                   <CardHeader className="flex-row items-center gap-2 space-y-0">
                     <Lightbulb className="text-accent-foreground h-5 w-5 bg-accent p-0.5 rounded-full" />
-                    <CardTitle className="text-base">Savings Opportunities</CardTitle>
+                    <CardTitle className="text-base">Oportunidades de Ahorro</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-secondary-foreground">{prediction.savingsOpportunities}</p>
@@ -181,7 +182,7 @@ export function DashboardTab() {
             ) : (
               <div className="text-center text-muted-foreground space-y-2">
                 <BrainCircuit className="mx-auto h-12 w-12" />
-                <p>Click "Predict Now" to get your personalized budget insights.</p>
+                <p>Haz clic en "Predecir Ahora" para obtener tus consejos de presupuesto personalizados.</p>
               </div>
             )}
           </CardContent>
@@ -189,18 +190,18 @@ export function DashboardTab() {
 
         <Card className="flex flex-col">
           <CardHeader>
-            <CardTitle>Recent Purchases</CardTitle>
-            <CardDescription>A log of your recently scanned items.</CardDescription>
+            <CardTitle>Compras Recientes</CardTitle>
+            <CardDescription>Un registro de los artículos que has escaneado recientemente.</CardDescription>
           </CardHeader>
           <CardContent className="p-0 flex-grow">
             <ScrollArea className="h-96">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Item</TableHead>
-                    <TableHead>Supermarket</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead className="text-right">Price</TableHead>
+                    <TableHead>Artículo</TableHead>
+                    <TableHead>Supermercado</TableHead>
+                    <TableHead>Fecha</TableHead>
+                    <TableHead className="text-right">Precio</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -209,14 +210,14 @@ export function DashboardTab() {
                       <TableRow key={purchase.id}>
                         <TableCell className="font-medium">{purchase.item}</TableCell>
                         <TableCell><Badge variant="secondary">{purchase.supermarket}</Badge></TableCell>
-                        <TableCell>{format(parseISO(purchase.date), 'dd/MM/yyyy')}</TableCell>
+                        <TableCell>{format(parseISO(purchase.date), 'dd/MM/yyyy', { locale: es })}</TableCell>
                         <TableCell className="text-right">€{purchase.price.toFixed(2)}</TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
                       <TableCell colSpan={4} className="h-24 text-center">
-                        No purchases yet. Start by scanning an item.
+                        No hay compras todavía. Empieza escaneando un artículo.
                       </TableCell>
                     </TableRow>
                   )}

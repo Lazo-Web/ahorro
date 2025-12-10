@@ -1,0 +1,158 @@
+/**
+ * This Firestore Security Ruleset is designed for a pantry and shopping management application.
+ *
+ * Core Philosophy:
+ * The security model implements a strict separation between public, shared data and private, user-owned data.
+ * Public data is readable by anyone but managed centrally, while user data is accessible only by its owner.
+ *
+ * Data Structure:
+ * - /products/{productId}: A global collection of product details, readable by all users.
+ * - /supermarkets/{supermarketId}: A global collection of supermarket details, readable by all users.
+ * - /users/{userId}/...: A collection where each user's private data is stored in nested subcollections.
+ *   - /pantry/{pantryItemId}: The user's personal pantry items.
+ *   - /shoppingList/{shoppingListItemId}: The user's personal shopping list.
+ *   - /expenses/{expenseId}: The user's personal expense records.
+ *
+ * Key Security Decisions:
+ * - User Data Isolation: All user-specific data (pantry, shopping list, expenses) is stored in subcollections under `/users/{userId}`. Access is granted exclusively based on the user's authenticated UID matching the `{userId}` in the path. This path-based ownership is simple, secure, and performant.
+ * - No User Enumeration: Listing documents in the top-level `/users` collection is explicitly disallowed to protect user privacy and prevent enumeration attacks.
+ * - Centrally Managed Public Data: The `/products` and `/supermarkets` collections are publicly readable but cannot be modified by clients. This assumes they are populated and managed by a trusted backend service or administrative process, which is a secure default for shared application data.
+ *
+ * Denormalization for Authorization:
+ * This ruleset relies on Path-Based Ownership. For instance, securing `/users/{userId}/pantry/{itemId}` is achieved by simply comparing `request.auth.uid` to the `{userId}` wildcard from the path. This avoids costly and slow `get()` calls to other documents for authorization checks.
+ *
+ * Structural Segregation:
+ * The separation of public data (`/products`, `/supermarkets`) from private user data (`/users/{userId}/*`) is a core design choice. This structure ensures that queries for public data never risk exposing private information and that rules for private data can be simple and strict.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ------------------------------------------------------------------------
+    // Helper Functions
+    // ------------------------------------------------------------------------
+
+    /**
+     * Checks if the user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Validates if the requesting user's UID matches the document's owner ID from the path.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * Ensures that an operation is being performed on an existing document.
+     * Crucial for update and delete operations to prevent unintended side effects.
+     */
+    function isExistingDoc() {
+      return resource != null;
+    }
+
+    // ------------------------------------------------------------------------
+    // Public Collections
+    // ------------------------------------------------------------------------
+
+    /**
+     * @description Controls access to the global `products` collection.
+     * @path        /products/{productId}
+     * @allow       (get, list) Any user, authenticated or not, can read product data.
+     * @deny        (create, update, delete) Any client attempting to modify the products collection. This data is managed by a backend process.
+     * @principle   Provides public read access for shared data while preventing client-side modification.
+     */
+    match /products/{productId} {
+      allow get, list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Controls access to the global `supermarkets` collection.
+     * @path        /supermarkets/{supermarketId}
+     * @allow       (get, list) Any user, authenticated or not, can read supermarket data.
+     * @deny        (create, update, delete) Any client attempting to modify the supermarkets collection. This data is managed by a backend process.
+     * @principle   Provides public read access for shared data while preventing client-side modification.
+     */
+    match /supermarkets/{supermarketId} {
+      allow get, list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // ------------------------------------------------------------------------
+    // User-Specific Data
+    // ------------------------------------------------------------------------
+
+    match /users/{userId} {
+      /**
+       * @description Secures a user's top-level document (e.g., for profile info). Disallows listing to prevent user enumeration.
+       * @path        /users/{userId}
+       * @allow       (create) A new user creating their own user document for the first time. `auth.uid` must match `{userId}`.
+       * @allow       (get, update, delete) The document owner accessing or modifying their own user document.
+       * @deny        (list) Any user attempting to list all documents in the `/users` collection.
+       * @deny        (get) A user (`auth.uid: 'user_B'`) trying to read another user's document (`/users/user_A`).
+       * @principle   Enforces document ownership and prevents user enumeration.
+       */
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) && isExistingDoc();
+      allow delete: if isOwner(userId) && isExistingDoc();
+
+      /**
+       * @description Secures a user's private pantry items.
+       * @path        /users/{userId}/pantry/{pantryItemId}
+       * @allow       (create) An authenticated user (`auth.uid: 'user_A'`) adding an item to their own pantry (`/users/user_A/pantry/...`).
+       * @allow       (get, list, update, delete) The owner of the pantry managing their items.
+       * @deny        (get, list, create, update, delete) A user (`auth.uid: 'user_B'`) trying to access another user's pantry (`/users/user_A/pantry/...`).
+       * @principle   Restricts all access to a user's own data tree using path-based ownership.
+       */
+      match /pantry/{pantryItemId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId);
+        allow update: if isOwner(userId) && isExistingDoc();
+        allow delete: if isOwner(userId) && isExistingDoc();
+      }
+
+      /**
+       * @description Secures a user's private shopping list items.
+       * @path        /users/{userId}/shoppingList/{shoppingListItemId}
+       * @allow       (create) An authenticated user (`auth.uid: 'user_A'`) adding an item to their own shopping list (`/users/user_A/shoppingList/...`).
+       * @allow       (get, list, update, delete) The owner of the shopping list managing their items.
+       * @deny        (get, list, create, update, delete) A user (`auth.uid: 'user_B'`) trying to access another user's shopping list (`/users/user_A/shoppingList/...`).
+       * @principle   Restricts all access to a user's own data tree using path-based ownership.
+       */
+      match /shoppingList/{shoppingListItemId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId);
+        allow update: if isOwner(userId) && isExistingDoc();
+        allow delete: if isOwner(userId) && isExistingDoc();
+      }
+
+      /**
+       * @description Secures a user's private expense records.
+       * @path        /users/{userId}/expenses/{expenseId}
+       * @allow       (create) An authenticated user (`auth.uid: 'user_A'`) adding an expense record to their own history (`/users/user_A/expenses/...`).
+       * @allow       (get, list, update, delete) The owner of the expense records managing their data.
+       * @deny        (get, list, create, update, delete) A user (`auth.uid: 'user_B'`) trying to access another user's expenses (`/users/user_A/expenses/...`).
+       * @principle   Restricts all access to a user's own data tree using path-based ownership.
+       */
+      match /expenses/{expenseId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId);
+        allow update: if isOwner(userId) && isExistingDoc();
+        allow delete: if isOwner(userId) && isExistingDoc();
+      }
+    }
+  }
+}

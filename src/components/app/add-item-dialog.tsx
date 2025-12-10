@@ -31,7 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { CalendarIcon, Loader2, PlusCircle, ScanBarcode } from 'lucide-react';
+import { CalendarIcon, Loader2, PlusCircle, ScanLine } from 'lucide-react';
 import { useAppContext } from './app-provider';
 import { supermarkets } from '@/data/mock-data';
 import { useToast } from '@/hooks/use-toast';
@@ -56,7 +56,10 @@ export function AddItemDialog() {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<'scan' | 'form'>('scan');
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | undefined>(undefined);
+  const [isScannerSupported, setIsScannerSupported] = useState<boolean | undefined>(undefined);
+  const [detectedBarcode, setDetectedBarcode] = useState<string>('');
   const videoRef = useRef<HTMLVideoElement>(null);
+  const scannerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
   const { addPurchase } = useAppContext();
   const { toast } = useToast();
@@ -72,36 +75,75 @@ export function AddItemDialog() {
   });
 
   useEffect(() => {
+    if ('BarcodeDetector' in window) {
+      setIsScannerSupported(true);
+    } else {
+      setIsScannerSupported(false);
+    }
+  }, []);
+
+  useEffect(() => {
     let stream: MediaStream | null = null;
-    const getCameraPermission = async () => {
-      if (!open || step !== 'scan') return;
+    let barcodeDetector: any | null = null;
+
+    const startScan = async () => {
+      if (!open || step !== 'scan' || !videoRef.current || !isScannerSupported) return;
+
       try {
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
         setHasCameraPermission(true);
 
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
+          await videoRef.current.play();
         }
+        
+        barcodeDetector = new (window as any).BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e'] });
+
+        scannerIntervalRef.current = setInterval(async () => {
+          if (!videoRef.current || !barcodeDetector) return;
+          try {
+            const barcodes = await barcodeDetector.detect(videoRef.current);
+            if (barcodes.length > 0) {
+              const foundBarcode = barcodes[0].rawValue;
+              setDetectedBarcode(foundBarcode);
+              form.setValue('barcode', foundBarcode);
+              setStep('form');
+            }
+          } catch (scanError) {
+            // console.error("Scanning error:", scanError);
+          }
+        }, 500); // Scan every 500ms
+
       } catch (error) {
         console.error('Error accessing camera:', error);
         setHasCameraPermission(false);
       }
     };
 
-    getCameraPermission();
-
-    return () => {
+    const stopScan = () => {
+       if (scannerIntervalRef.current) {
+        clearInterval(scannerIntervalRef.current);
+        scannerIntervalRef.current = null;
+      }
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
+    };
+    
+    if (open && step === 'scan') {
+      startScan();
+    } else {
+      stopScan();
     }
-  }, [open, step]);
 
-  const handleSimulateScan = () => {
-    // In a real app, a barcode scanner library would return data here.
-    const simulatedBarcode = Math.random().toString().slice(2, 15);
-    form.setValue('barcode', simulatedBarcode);
-    // We'll simulate it and move to the form.
+    return () => {
+      stopScan();
+    }
+  }, [open, step, isScannerSupported, form]);
+
+  const handleManualEntry = () => {
+    form.setValue('barcode', 'MANUAL-ENTRY');
     setStep('form');
   };
 
@@ -115,16 +157,17 @@ export function AddItemDialog() {
     form.reset();
     setStep('scan');
     setOpen(false);
+    setDetectedBarcode('');
   };
   
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
     if (!isOpen) {
-      // Reset state when closing
       setTimeout(() => {
         form.reset();
         setStep('scan');
         setHasCameraPermission(undefined);
+        setDetectedBarcode('');
       }, 300);
     }
   }
@@ -151,19 +194,28 @@ export function AddItemDialog() {
                  <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
                  <div className="absolute inset-0 bg-black/20" />
                  <div className="absolute w-2/3 h-1/3 border-4 border-primary/50 rounded-lg" />
+                  
+                  {isScannerSupported === false && (
+                    <Alert variant="destructive" className="absolute bottom-4 w-5/6">
+                      <AlertTitle>Scanner Not Supported</AlertTitle>
+                      <AlertDescription>
+                        Your browser doesn't support barcode scanning.
+                      </AlertDescription>
+                    </Alert>
+                  )}
 
                  {hasCameraPermission === false && (
                    <Alert variant="destructive" className="absolute bottom-4 w-5/6">
                      <AlertTitle>Camera Access Denied</AlertTitle>
                      <AlertDescription>
-                       Please enable camera permissions to use the scanner.
+                       Enable camera permissions to use the scanner.
                      </AlertDescription>
                    </Alert>
                  )}
                </div>
-              <Button onClick={handleSimulateScan} className="w-full">
-                <ScanBarcode className="mr-2"/>
-                Simulate Scan & Enter Manually
+              <Button onClick={handleManualEntry} className="w-full">
+                <ScanLine className="mr-2"/>
+                Enter Manually
               </Button>
             </div>
           </>

@@ -110,49 +110,44 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
   const addPurchase = useCallback(
     (item: Omit<Purchase, 'id' | 'userId'>) => {
-      
-      setPantry(currentPantry => {
-        const existingPantryItem = currentPantry.find(
-          pantryItem => pantryItem.name.toLowerCase() === item.item.toLowerCase()
-        );
+      const existingPantryItem = pantry.find(
+        (pantryItem) => pantryItem.name.toLowerCase() === item.item.toLowerCase()
+      );
 
-        if (existingPantryItem) {
-          toast({
-            variant: 'destructive',
-            title: 'El artículo ya está en la despensa',
-            description: `${item.item} ya está en tu despensa. Termínalo antes de añadir otro.`,
-          });
-          return currentPantry; // Return current pantry without changes
-        }
-
-        // If not in pantry, proceed to add
-        const purchaseId = `purchase-${Date.now()}`;
-        const newPurchase: Purchase = {
-          ...item,
-          id: purchaseId,
-          userId: 'local-user',
-          date: new Date().toISOString().split('T')[0],
-        };
-
-        const newPantryItem: PantryItem = {
-          id: `pantry-${Date.now()}`,
-          userId: 'local-user',
-          name: newPurchase.item,
-          purchaseId: newPurchase.id,
-          expiryDate: newPurchase.expiryDate,
-        };
-
-        setPurchases(prevPurchases => [...prevPurchases, newPurchase]);
-        
+      if (existingPantryItem) {
         toast({
-          title: 'Artículo Añadido',
-          description: `${item.item} ha sido añadido a tu despensa y al historial de compras.`,
+          variant: 'destructive',
+          title: 'El artículo ya está en la despensa',
+          description: `${item.item} ya está en tu despensa. Termínalo antes de añadir otro.`,
         });
+        return; // Stop execution
+      }
+      
+      const purchaseId = `purchase-${Date.now()}`;
+      const newPurchase: Purchase = {
+        ...item,
+        id: purchaseId,
+        userId: 'local-user',
+        date: new Date().toISOString().split('T')[0],
+      };
 
-        return [...currentPantry, newPantryItem];
+      const newPantryItem: PantryItem = {
+        id: `pantry-${Date.now()}`,
+        userId: 'local-user',
+        name: newPurchase.item,
+        purchaseId: newPurchase.id,
+        expiryDate: newPurchase.expiryDate,
+      };
+
+      setPurchases(prevPurchases => [...prevPurchases, newPurchase]);
+      setPantry(prevPantry => [...prevPantry, newPantryItem]);
+      
+      toast({
+        title: 'Artículo Añadido',
+        description: `${item.item} ha sido añadido a tu despensa y al historial de compras.`,
       });
     },
-    [toast]
+    [pantry, toast]
   );
   
   const toggleShoppingListItem = useCallback((itemId: string, isCompleted: boolean) => {

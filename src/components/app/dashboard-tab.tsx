@@ -28,18 +28,19 @@ import { useToast } from '@/hooks/use-toast';
 import { Badge } from '../ui/badge';
 import { ScrollArea } from '../ui/scroll-area';
 import { format, parseISO } from 'date-fns';
+import { Skeleton } from '../ui/skeleton';
 
 export function DashboardTab() {
-  const { purchases, pantry, shoppingList } = useAppContext();
+  const { purchases, pantry, shoppingList, isLoading: isAppLoading } = useAppContext();
   const [prediction, setPrediction] = useState<PredictMonthlySpendingOutput | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPredictionLoading, setIsPredictionLoading] = useState(false);
   const { toast } = useToast();
 
   const totalSpent = purchases.reduce((sum, p) => sum + p.price, 0);
   const dashboardHeroImage = PlaceHolderImages.find(img => img.id === 'dashboard-hero');
 
   const handlePrediction = async () => {
-    setIsLoading(true);
+    setIsPredictionLoading(true);
     setPrediction(null);
     const result = await getSpendingPrediction({ purchaseHistory: purchases });
     if (result.success && result.data) {
@@ -51,8 +52,35 @@ export function DashboardTab() {
         description: result.error || 'An unknown error occurred.',
       });
     }
-    setIsLoading(false);
+    setIsPredictionLoading(false);
   };
+  
+  if (isAppLoading) {
+     return (
+      <div className="space-y-6">
+        <Card className="overflow-hidden">
+            <Skeleton className="h-48 w-full md:h-64" />
+        </Card>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader>
+                <Skeleton className="h-5 w-2/3" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-1/2 mb-2" />
+                <Skeleton className="h-4 w-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+         <div className="grid gap-6 md:grid-cols-2">
+            <Card><CardContent className="h-96 flex items-center justify-center"><Loader2 className="animate-spin" /></CardContent></Card>
+            <Card><CardContent className="h-96 flex items-center justify-center"><Loader2 className="animate-spin" /></CardContent></Card>
+         </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -114,8 +142,8 @@ export function DashboardTab() {
             <BrainCircuit className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <Button size="sm" className="w-full" onClick={handlePrediction} disabled={isLoading}>
-              {isLoading ? <Loader2 className="animate-spin"/> : <><Lightbulb className="mr-2 h-4 w-4"/> Predict Now</>}
+            <Button size="sm" className="w-full" onClick={handlePrediction} disabled={isPredictionLoading}>
+              {isPredictionLoading ? <Loader2 className="animate-spin"/> : <><Lightbulb className="mr-2 h-4 w-4"/> Predict Now</>}
             </Button>
             <p className="text-xs text-muted-foreground mt-2 text-center">Analyze your spending habits</p>
           </CardContent>
@@ -131,7 +159,7 @@ export function DashboardTab() {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex-grow flex items-center justify-center">
-            {isLoading ? (
+            {isPredictionLoading ? (
               <div className="flex flex-col items-center gap-4 text-center">
                 <Loader2 className="h-12 w-12 animate-spin text-primary"/>
                 <p className="text-muted-foreground">Analyzing your purchase history...</p>

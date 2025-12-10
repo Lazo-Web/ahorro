@@ -59,7 +59,7 @@ export function ShoppingListTab() {
                       <Checkbox
                         id={`item-${item.id}`}
                         checked={item.isCompleted}
-                        onCheckedChange={() => toggleShoppingListItem(item.id)}
+                        onCheckedChange={() => toggleShoppingListItem(item.id, item.isCompleted)}
                         aria-label={`Mark ${item.name} as complete`}
                       />
                       <label
@@ -90,7 +90,7 @@ export function ShoppingListTab() {
                         <Checkbox
                           id={`item-${item.id}`}
                           checked={item.isCompleted}
-                          onCheckedChange={() => toggleShoppingListItem(item.id)}
+                          onCheckedChange={() => toggleShoppingListItem(item.id, item.isCompleted)}
                           aria-label={`Mark ${item.name} as incomplete`}
                         />
                         <label

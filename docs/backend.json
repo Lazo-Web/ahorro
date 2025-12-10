@@ -6,33 +6,13 @@
       "type": "object",
       "description": "Represents a product that can be scanned and added to the pantry or shopping list.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the product."
-        },
-        "barcode": {
-          "type": "string",
-          "description": "The product's barcode."
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the product."
-        },
-        "description": {
-          "type": "string",
-          "description": "A detailed description of the product."
-        },
-        "imageUrl": {
-          "type": "string",
-          "description": "URL to an image of the product.",
-          "format": "uri"
-        }
+        "id": { "type": "string", "description": "Unique identifier for the product." },
+        "barcode": { "type": "string", "description": "The product's barcode." },
+        "name": { "type": "string", "description": "Name of the product." },
+        "description": { "type": "string", "description": "A detailed description of the product." },
+        "imageUrl": { "type": "string", "description": "URL to an image of the product.", "format": "uri" }
       },
-      "required": [
-        "id",
-        "barcode",
-        "name"
-      ]
+      "required": ["id", "barcode", "name"]
     },
     "PantryItem": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -40,29 +20,13 @@
       "type": "object",
       "description": "Represents an item in the user's pantry.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the pantry item."
-        },
-        "productId": {
-          "type": "string",
-          "description": "Reference to the Product. (Relationship: Product 1:N PantryItem)"
-        },
-        "quantity": {
-          "type": "number",
-          "description": "Quantity of the product in the pantry."
-        },
-        "dateAdded": {
-          "type": "string",
-          "description": "Date when the item was added to the pantry.",
-          "format": "date-time"
-        }
+        "id": { "type": "string", "description": "Unique identifier for the pantry item." },
+        "userId": { "type": "string", "description": "The ID of the user who owns this item." },
+        "purchaseId": { "type": "string", "description": "Reference to the Purchase." },
+        "name": { "type": "string", "description": "Name of the item." },
+        "expiryDate": { "type": "string", "format": "date", "description": "The expiration date of the item." }
       },
-      "required": [
-        "id",
-        "productId",
-        "quantity"
-      ]
+      "required": ["id", "userId", "purchaseId", "name"]
     },
     "ShoppingListItem": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -70,68 +34,29 @@
       "type": "object",
       "description": "Represents an item on the user's shopping list.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the shopping list item."
-        },
-        "productId": {
-          "type": "string",
-          "description": "Reference to the Product. (Relationship: Product 1:N ShoppingListItem)"
-        },
-        "quantity": {
-          "type": "number",
-          "description": "Quantity of the product needed."
-        },
-        "addedDate": {
-          "type": "string",
-          "description": "Date the item was added to the shopping list.",
-          "format": "date-time"
-        },
-        "isPurchased": {
-          "type": "boolean",
-          "description": "Flag indicating if the item has been purchased."
-        }
+        "id": { "type": "string", "description": "Unique identifier for the shopping list item." },
+        "userId": { "type": "string", "description": "The ID of the user who owns this item." },
+        "name": { "type": "string", "description": "Name of the product needed." },
+        "isCompleted": { "type": "boolean", "description": "Flag indicating if the item has been purchased." }
       },
-      "required": [
-        "id",
-        "productId",
-        "quantity"
-      ]
+      "required": ["id", "userId", "name", "isCompleted"]
     },
-    "Expense": {
+    "Purchase": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Expense",
+      "title": "Purchase",
       "type": "object",
-      "description": "Represents an expense tracked by the user.",
+      "description": "Represents a purchase record.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the expense."
-        },
-        "productId": {
-          "type": "string",
-          "description": "Reference to the Product. (Relationship: Product 1:N Expense)"
-        },
-        "amount": {
-          "type": "number",
-          "description": "Amount spent on the product."
-        },
-        "date": {
-          "type": "string",
-          "description": "Date of the expense.",
-          "format": "date-time"
-        },
-        "supermarketId": {
-          "type": "string",
-          "description": "Reference to the Supermarket where the expense occurred. (Relationship: Supermarket 1:N Expense)"
-        }
+        "id": { "type": "string", "description": "Unique identifier for the purchase record." },
+        "userId": { "type": "string", "description": "The ID of the user who made the purchase." },
+        "item": { "type": "string", "description": "Name of the purchased item." },
+        "price": { "type": "number", "description": "Price of the item." },
+        "date": { "type": "string", "format": "date", "description": "Date of the purchase." },
+        "supermarket": { "type": "string", "description": "Supermarket where the item was purchased." },
+        "expiryDate": { "type": "string", "format": "date", "description": "The expiration date of the item." },
+        "calories": { "type": "number", "description": "Calorie count of the item." }
       },
-      "required": [
-        "id",
-        "productId",
-        "amount",
-        "date"
-      ]
+      "required": ["id", "userId", "item", "price", "date", "supermarket"]
     },
     "Supermarket": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -139,30 +64,15 @@
       "type": "object",
       "description": "Represents a supermarket where the user shops.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the supermarket."
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the supermarket."
-        },
-        "location": {
-          "type": "string",
-          "description": "Location of the supermarket (e.g., address)."
-        }
+        "id": { "type": "string", "description": "Unique identifier for the supermarket." },
+        "name": { "type": "string", "description": "Name of the supermarket." },
+        "location": { "type": "string", "description": "Location of the supermarket (e.g., address)." }
       },
-      "required": [
-        "id",
-        "name"
-      ]
+      "required": ["id", "name"]
     }
   },
   "auth": {
-    "providers": [
-      "password",
-      "anonymous"
-    ]
+    "providers": ["password", "anonymous"]
   },
   "firestore": {
     "structure": [
@@ -170,35 +80,20 @@
         "path": "/products/{productId}",
         "definition": {
           "entityName": "Product",
-          "schema": {
-            "$ref": "#/backend/entities/Product"
-          },
+          "schema": { "$ref": "#/backend/entities/Product" },
           "description": "Stores product information. Accessible to all users. The `productId` is the unique identifier for the product.",
-          "params": [
-            {
-              "name": "productId",
-              "description": "The unique identifier of the product."
-            }
-          ]
+          "params": [{ "name": "productId", "description": "The unique identifier of the product." }]
         }
       },
       {
         "path": "/users/{userId}/pantry/{pantryItemId}",
         "definition": {
           "entityName": "PantryItem",
-          "schema": {
-            "$ref": "#/backend/entities/PantryItem"
-          },
+          "schema": { "$ref": "#/backend/entities/PantryItem" },
           "description": "Stores pantry items for a specific user. Path-based ownership ensures only the user can access their pantry. The `userId` identifies the user, and `pantryItemId` is the unique identifier for the pantry item.",
           "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user."
-            },
-            {
-              "name": "pantryItemId",
-              "description": "The unique identifier of the pantry item."
-            }
+            { "name": "userId", "description": "The unique identifier of the user." },
+            { "name": "pantryItemId", "description": "The unique identifier of the pantry item." }
           ]
         }
       },
@@ -206,56 +101,33 @@
         "path": "/users/{userId}/shoppingList/{shoppingListItemId}",
         "definition": {
           "entityName": "ShoppingListItem",
-          "schema": {
-            "$ref": "#/backend/entities/ShoppingListItem"
-          },
+          "schema": { "$ref": "#/backend/entities/ShoppingListItem" },
           "description": "Stores shopping list items for a specific user. Path-based ownership ensures only the user can access their shopping list. The `userId` identifies the user, and `shoppingListItemId` is the unique identifier for the shopping list item.",
           "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user."
-            },
-            {
-              "name": "shoppingListItemId",
-              "description": "The unique identifier of the shopping list item."
-            }
+            { "name": "userId", "description": "The unique identifier of the user." },
+            { "name": "shoppingListItemId", "description": "The unique identifier of the shopping list item." }
           ]
         }
       },
       {
-        "path": "/users/{userId}/expenses/{expenseId}",
+        "path": "/users/{userId}/purchases/{purchaseId}",
         "definition": {
-          "entityName": "Expense",
-          "schema": {
-            "$ref": "#/backend/entities/Expense"
-          },
-          "description": "Stores expenses for a specific user. Path-based ownership ensures only the user can access their expense data. The `userId` identifies the user, and `expenseId` is the unique identifier for the expense.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user."
-            },
-            {
-              "name": "expenseId",
-              "description": "The unique identifier of the expense."
-            }
-          ]
+            "entityName": "Purchase",
+            "schema": { "$ref": "#/backend/entities/Purchase" },
+            "description": "Stores purchase history for a specific user. The `userId` identifies the user, and `purchaseId` is the unique identifier for the purchase record.",
+            "params": [
+                { "name": "userId", "description": "The unique identifier of the user." },
+                { "name": "purchaseId", "description": "The unique identifier of the purchase." }
+            ]
         }
       },
       {
         "path": "/supermarkets/{supermarketId}",
         "definition": {
           "entityName": "Supermarket",
-          "schema": {
-            "$ref": "#/backend/entities/Supermarket"
-          },
+          "schema": { "$ref": "#/backend/entities/Supermarket" },
           "description": "Stores supermarket information. Accessible to all users. The `supermarketId` is the unique identifier for the supermarket.",
-          "params": [
-            {
-              "name": "supermarketId",
-              "description": "The unique identifier of the supermarket."
-            }
-          ]
+          "params": [{ "name": "supermarketId", "description": "The unique identifier of the supermarket." }]
         }
       }
     ],

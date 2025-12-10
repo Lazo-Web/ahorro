@@ -21,7 +21,7 @@ import { AlertTriangle, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '../ui/badge';
 import { ScrollArea } from '../ui/scroll-area';
-import { format, differenceInDays, isBefore, addDays } from 'date-fns';
+import { format, differenceInDays, isBefore, addDays, parseISO } from 'date-fns';
 import {
   Tooltip,
   TooltipContent,
@@ -49,21 +49,22 @@ export function PantryTab() {
     if (!expiryDate) return { status: 'none', message: '' };
     
     const today = new Date();
-    const expiry = new Date(expiryDate);
+    today.setHours(0, 0, 0, 0);
+    const expiry = parseISO(expiryDate);
     const daysUntilExpiry = differenceInDays(expiry, today);
 
     if (isBefore(expiry, today)) {
-      return { status: 'expired', message: `Expired ${differenceInDays(today, expiry)} days ago` };
+      return { status: 'expired', message: `Expired ${Math.abs(daysUntilExpiry)} days ago` };
     }
     if (daysUntilExpiry <= 3) {
-      return { status: 'expiring-soon', message: `Expires in ${daysUntilExpiry} day(s)` };
+      return { status: 'expiring-soon', message: `Expires in ${daysUntilExpiry + 1} day(s)` };
     }
     return { status: 'fresh', message: `Expires on ${format(expiry, 'dd/MM/yyyy')}` };
   };
 
   const sortedPantry = [...pantry].sort((a, b) => {
-    const aExpiry = a.expiryDate ? new Date(a.expiryDate) : addDays(new Date(), 9999);
-    const bExpiry = b.expiryDate ? new Date(b.expiryDate) : addDays(new Date(), 9999);
+    const aExpiry = a.expiryDate ? parseISO(a.expiryDate) : addDays(new Date(), 9999);
+    const bExpiry = b.expiryDate ? parseISO(b.expiryDate) : addDays(new Date(), 9999);
     return differenceInDays(aExpiry, bExpiry);
   });
 
@@ -98,7 +99,7 @@ export function PantryTab() {
                           {purchase ? <Badge variant="secondary">{purchase.supermarket}</Badge> : 'N/A'}
                         </TableCell>
                         <TableCell>
-                          {purchase ? format(new Date(purchase.date), 'dd/MM/yyyy') : 'N/A'}
+                          {purchase ? format(parseISO(purchase.date), 'dd/MM/yyyy') : 'N/A'}
                         </TableCell>
                         <TableCell>
                            {expiryInfo.status !== 'none' ? (

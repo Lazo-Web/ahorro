@@ -1,5 +1,6 @@
 export interface Purchase {
   id: string;
+  userId: string;
   item: string;
   price: number;
   date: string;
@@ -10,6 +11,7 @@ export interface Purchase {
 
 export interface PantryItem {
   id: string;
+  userId: string;
   name: string;
   purchaseId: string;
   expiryDate?: string;
@@ -17,6 +19,7 @@ export interface PantryItem {
 
 export interface ShoppingListItem {
   id: string;
+  userId: string;
   name: string;
   isCompleted: boolean;
 }

@@ -27,7 +27,7 @@ import type { PredictMonthlySpendingOutput } from '@/ai/flows/predict-monthly-sp
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '../ui/badge';
 import { ScrollArea } from '../ui/scroll-area';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 
 export function DashboardTab() {
   const { purchases, pantry, shoppingList } = useAppContext();
@@ -181,7 +181,7 @@ export function DashboardTab() {
                       <TableRow key={purchase.id}>
                         <TableCell className="font-medium">{purchase.item}</TableCell>
                         <TableCell><Badge variant="secondary">{purchase.supermarket}</Badge></TableCell>
-                        <TableCell>{format(new Date(purchase.date), 'dd/MM/yyyy')}</TableCell>
+                        <TableCell>{format(parseISO(purchase.date), 'dd/MM/yyyy')}</TableCell>
                         <TableCell className="text-right">€{purchase.price.toFixed(2)}</TableCell>
                       </TableRow>
                     ))

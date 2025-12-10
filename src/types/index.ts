@@ -4,12 +4,15 @@ export interface Purchase {
   price: number;
   date: string;
   supermarket: string;
+  expiryDate?: string;
+  calories?: number;
 }
 
 export interface PantryItem {
   id: string;
   name: string;
   purchaseId: string;
+  expiryDate?: string;
 }
 
 export interface ShoppingListItem {

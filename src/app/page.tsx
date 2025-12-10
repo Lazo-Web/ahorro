@@ -1,3 +1,10 @@
+import { AppProvider } from '@/components/app/app-provider';
+import { AppShell } from '@/components/app/app-shell';
+
 export default function Home() {
-  return <></>;
+  return (
+    <AppProvider>
+      <AppShell />
+    </AppProvider>
+  );
 }

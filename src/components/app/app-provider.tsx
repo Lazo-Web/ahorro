@@ -68,6 +68,21 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
   const isLoading = isUserLoading || purchasesLoading || pantryLoading || shoppingListLoading;
 
+  const addShoppingListItem = useCallback(
+    (name: string) => {
+      if (!user || name.trim() === '') return;
+      
+      const existingShoppingItem = shoppingList?.find(
+        shoppingItem => shoppingItem.name.toLowerCase() === name.toLowerCase()
+      );
+      if (existingShoppingItem) return;
+
+      const colRef = collection(firestore, 'users', user.uid, 'shoppingList');
+      addDocumentNonBlocking(colRef, { name, isCompleted: false, userId: user.uid });
+    },
+    [user, firestore, shoppingList]
+  );
+
   const addPurchase = useCallback(
     async (item: Omit<Purchase, 'id' | 'userId'>) => {
       if (!user) return;
@@ -142,22 +157,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       deleteDocumentNonBlocking(docRef);
 
     }, [user, firestore, pantry, shoppingList, toast, addShoppingListItem]
-  );
-
-
-  const addShoppingListItem = useCallback(
-    (name: string) => {
-      if (!user || name.trim() === '') return;
-      
-      const existingShoppingItem = shoppingList?.find(
-        shoppingItem => shoppingItem.name.toLowerCase() === name.toLowerCase()
-      );
-      if (existingShoppingItem) return;
-
-      const colRef = collection(firestore, 'users', user.uid, 'shoppingList');
-      addDocumentNonBlocking(colRef, { name, isCompleted: false, userId: user.uid });
-    },
-    [user, firestore, shoppingList]
   );
   
   const toggleShoppingListItem = useCallback((itemId: string, isCompleted: boolean) => {

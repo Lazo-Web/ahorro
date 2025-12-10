@@ -21,6 +21,7 @@ import { Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '../ui/badge';
 import { ScrollArea } from '../ui/scroll-area';
+import { format } from 'date-fns';
 
 export function PantryTab() {
   const { pantry, purchases, removeFromPantry } = useAppContext();
@@ -66,7 +67,7 @@ export function PantryTab() {
                         {purchase ? <Badge variant="secondary">{purchase.supermarket}</Badge> : 'N/A'}
                       </TableCell>
                       <TableCell>
-                        {purchase ? new Date(purchase.date).toLocaleDateString() : 'N/A'}
+                        {purchase ? format(new Date(purchase.date), 'dd/MM/yyyy') : 'N/A'}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button

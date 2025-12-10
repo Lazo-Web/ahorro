@@ -72,6 +72,7 @@ export function AddItemDialog() {
       item: '',
       price: 0,
       supermarket: '',
+      calories: '' as any,
     },
   });
 

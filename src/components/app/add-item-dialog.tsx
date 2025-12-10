@@ -104,6 +104,7 @@ export function AddItemDialog() {
   const onSubmit = (values: FormValues) => {
     const purchaseData = {
       ...values,
+      date: new Date().toISOString().split('T')[0],
       expiryDate: values.expiryDate ? values.expiryDate.toISOString().split('T')[0] : undefined,
     };
     addPurchase(purchaseData);
@@ -162,7 +163,7 @@ export function AddItemDialog() {
                </div>
               <Button onClick={handleSimulateScan} className="w-full">
                 <ScanBarcode className="mr-2"/>
-                Simulate Scan
+                Simulate Scan & Enter Manually
               </Button>
             </div>
           </>
@@ -171,7 +172,7 @@ export function AddItemDialog() {
             <DialogHeader>
               <DialogTitle>Add New Purchase</DialogTitle>
               <DialogDescription>
-                Barcode scanned! Now add the product details.
+                Enter the product details.
               </DialogDescription>
             </DialogHeader>
             <Form {...form}>
@@ -248,7 +249,7 @@ export function AddItemDialog() {
                               selected={field.value}
                               onSelect={field.onChange}
                               disabled={(date) =>
-                                date < new Date()
+                                date < new Date(new Date().setHours(0,0,0,0))
                               }
                               initialFocus
                             />

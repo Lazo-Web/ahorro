@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import type { Purchase, PantryItem, ShoppingListItem } from '@/types';
 import { initialPurchases, initialPantry, initialShoppingList } from '@/data/mock-data';
 import { useToast } from '@/hooks/use-toast';
@@ -9,7 +9,7 @@ interface AppContextType {
   purchases: Purchase[];
   pantry: PantryItem[];
   shoppingList: ShoppingListItem[];
-  addPurchase: (item: Omit<Purchase, 'id' | 'date'>) => void;
+  addPurchase: (item: Omit<Purchase, 'id'>) => void;
   removeFromPantry: (pantryItemId: string) => void;
   addShoppingListItem: (name: string) => void;
   toggleShoppingListItem: (itemId: string) => void;
@@ -25,7 +25,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [shoppingList, setShoppingList] = useState<ShoppingListItem[]>(initialShoppingList);
   const { toast } = useToast();
 
-  const addPurchase = useCallback((item: Omit<Purchase, 'id' | 'date'>) => {
+  const addPurchase = useCallback((item: Omit<Purchase, 'id'>) => {
     // Prevent adding duplicate items to the pantry
     const existingPantryItem = pantry.find(pantryItem => pantryItem.name.toLowerCase() === item.item.toLowerCase());
     if(existingPantryItem) {
@@ -40,7 +40,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     const newPurchase: Purchase = {
       ...item,
       id: `purchase-${Date.now()}`,
-      date: new Date().toISOString().split('T')[0],
     };
     const newPantryItem: PantryItem = {
       id: `pantry-${Date.now()}`,

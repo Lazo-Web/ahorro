@@ -83,6 +83,23 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     [user, firestore, shoppingList]
   );
 
+  const removeFromPantry = useCallback(async (pantryItemId: string) => {
+      if (!user) return;
+      const itemToRemove = pantry?.find(item => item.id === pantryItemId);
+      if (itemToRemove && !shoppingList?.some(li => li.name.toLowerCase() === itemToRemove.name.toLowerCase())) {
+          addShoppingListItem(itemToRemove.name);
+           toast({
+              title: "Added to Shopping List",
+              description: `${itemToRemove.name} has been added to your shopping list.`
+          });
+      }
+      
+      const docRef = doc(firestore, 'users', user.uid, 'pantry', pantryItemId);
+      deleteDocumentNonBlocking(docRef);
+
+    }, [user, firestore, pantry, shoppingList, toast, addShoppingListItem]
+  );
+
   const addPurchase = useCallback(
     async (item: Omit<Purchase, 'id' | 'userId'>) => {
       if (!user) return;
@@ -142,23 +159,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     [user, firestore, pantry, toast]
   );
   
-  const removeFromPantry = useCallback(async (pantryItemId: string) => {
-      if (!user) return;
-      const itemToRemove = pantry?.find(item => item.id === pantryItemId);
-      if (itemToRemove && !shoppingList?.some(li => li.name.toLowerCase() === itemToRemove.name.toLowerCase())) {
-          addShoppingListItem(itemToRemove.name);
-           toast({
-              title: "Added to Shopping List",
-              description: `${itemToRemove.name} has been added to your shopping list.`
-          });
-      }
-      
-      const docRef = doc(firestore, 'users', user.uid, 'pantry', pantryItemId);
-      deleteDocumentNonBlocking(docRef);
-
-    }, [user, firestore, pantry, shoppingList, toast, addShoppingListItem]
-  );
-  
   const toggleShoppingListItem = useCallback((itemId: string, isCompleted: boolean) => {
     if(!user) return;
     const docRef = doc(firestore, 'users', user.uid, 'shoppingList', itemId);
@@ -184,8 +184,17 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         batch.delete(docRef);
       }
     });
-    await batch.commit();
-  }, [user, firestore, shoppingList]);
+    try {
+        await batch.commit();
+    } catch(e) {
+        console.error("Error clearing completed items:", e);
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'Could not clear completed items. Please try again.',
+        });
+    }
+  }, [user, firestore, shoppingList, toast]);
 
   return (
     <AppContext.Provider

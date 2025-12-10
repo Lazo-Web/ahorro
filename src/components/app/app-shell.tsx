@@ -6,19 +6,8 @@ import { DashboardTab } from '@/components/app/dashboard-tab';
 import { PantryTab } from '@/components/app/pantry-tab';
 import { ShoppingListTab } from '@/components/app/shopping-list-tab';
 import { Archive, LayoutDashboard, ShoppingCart } from 'lucide-react';
-import { useState, useEffect } from 'react';
 
 export function AppShell() {
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  if (!isClient) {
-    return null;
-  }
-
   return (
       <div className="min-h-screen w-full bg-background">
         <AppHeader />

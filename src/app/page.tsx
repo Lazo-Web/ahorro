@@ -1,10 +1,5 @@
-import { AppShell } from '@/components/app/app-shell';
-import { AppProvider } from '@/components/app/app-provider';
+import { ClientWrapper } from "@/components/app/client-wrapper";
 
 export default function Home() {
-  return (
-    <AppProvider>
-      <AppShell />
-    </AppProvider>
-  );
+  return <ClientWrapper />;
 }

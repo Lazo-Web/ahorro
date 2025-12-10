@@ -1,24 +1,9 @@
 'use client';
 
-import React, { createContext, useContext, useCallback } from 'react';
-import {
-  useFirestore,
-  useUser,
-  useCollection,
-  useMemoFirebase,
-} from '@/firebase';
-import {
-  collection,
-  doc,
-  writeBatch,
-} from 'firebase/firestore';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import type { Purchase, PantryItem, ShoppingListItem } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import {
-  addDocumentNonBlocking,
-  deleteDocumentNonBlocking,
-  updateDocumentNonBlocking,
-} from '@/firebase/non-blocking-updates';
+import { initialPantry, initialPurchases, initialShoppingList } from '@/data/mock-data';
 
 interface AppContextType {
   purchases: Purchase[];
@@ -36,75 +21,54 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider = ({ children }: { children: React.ReactNode }) => {
-  const firestore = useFirestore();
-  const { user, isUserLoading } = useUser();
+  const [purchases, setPurchases] = useState<Purchase[]>(initialPurchases);
+  const [pantry, setPantry] = useState<PantryItem[]>(initialPantry);
+  const [shoppingList, setShoppingList] = useState<ShoppingListItem[]>(initialShoppingList);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const purchasesQuery = useMemoFirebase(
-    () =>
-      user
-        ? collection(firestore, 'users', user.uid, 'purchases')
-        : null,
-    [firestore, user]
-  );
-  const { data: purchases, isLoading: purchasesLoading } =
-    useCollection<Purchase>(purchasesQuery);
-
-  const pantryQuery = useMemoFirebase(
-    () =>
-      user ? collection(firestore, 'users', user.uid, 'pantry') : null,
-    [firestore, user]
-  );
-  const { data: pantry, isLoading: pantryLoading } =
-    useCollection<PantryItem>(pantryQuery);
-
-  const shoppingListQuery = useMemoFirebase(
-    () =>
-      user ? collection(firestore, 'users', user.uid, 'shoppingList') : null,
-    [firestore, user]
-  );
-  const { data: shoppingList, isLoading: shoppingListLoading } =
-    useCollection<ShoppingListItem>(shoppingListQuery);
-
-  const isLoading = isUserLoading || purchasesLoading || pantryLoading || shoppingListLoading;
-
-  const addShoppingListItem = useCallback(
+   const addShoppingListItem = useCallback(
     (name: string) => {
-      if (!user || name.trim() === '') return;
+      if (name.trim() === '') return;
       
-      const existingShoppingItem = shoppingList?.find(
-        shoppingItem => shoppingItem.name.toLowerCase() === name.toLowerCase()
-      );
-      if (existingShoppingItem) return;
+      setShoppingList(prev => {
+        const existing = prev.find(item => item.name.toLowerCase() === name.toLowerCase());
+        if (existing) return prev;
 
-      const colRef = collection(firestore, 'users', user.uid, 'shoppingList');
-      addDocumentNonBlocking(colRef, { name, isCompleted: false, userId: user.uid });
+        const newItem: ShoppingListItem = {
+          id: Date.now().toString(),
+          userId: 'local-user',
+          name,
+          isCompleted: false,
+        };
+        return [...prev, newItem];
+      });
     },
-    [user, firestore, shoppingList]
+    []
   );
 
-  const removeFromPantry = useCallback(async (pantryItemId: string) => {
-      if (!user) return;
-      const itemToRemove = pantry?.find(item => item.id === pantryItemId);
-      if (itemToRemove && !shoppingList?.some(li => li.name.toLowerCase() === itemToRemove.name.toLowerCase())) {
-          addShoppingListItem(itemToRemove.name);
-           toast({
-              title: "Added to Shopping List",
-              description: `${itemToRemove.name} has been added to your shopping list.`
-          });
-      }
+  const removeFromPantry = useCallback((pantryItemId: string) => {
+      let itemRemoved: PantryItem | undefined;
+      setPantry(prev => {
+        itemRemoved = prev.find(i => i.id === pantryItemId);
+        return prev.filter(item => item.id !== pantryItemId);
+      });
       
-      const docRef = doc(firestore, 'users', user.uid, 'pantry', pantryItemId);
-      deleteDocumentNonBlocking(docRef);
-
-    }, [user, firestore, pantry, shoppingList, toast, addShoppingListItem]
-  );
+      if (itemRemoved) {
+        const isAlreadyInShoppingList = shoppingList.some(li => li.name.toLowerCase() === itemRemoved!.name.toLowerCase());
+        if (!isAlreadyInShoppingList) {
+          addShoppingListItem(itemRemoved.name);
+          toast({
+              title: "Added to Shopping List",
+              description: `${itemRemoved.name} has been added to your shopping list.`
+          });
+        }
+      }
+    }, [addShoppingListItem, toast, shoppingList]);
 
   const addPurchase = useCallback(
-    async (item: Omit<Purchase, 'id' | 'userId'>) => {
-      if (!user) return;
-
-      const existingPantryItem = pantry?.find(
+    (item: Omit<Purchase, 'id' | 'userId'>) => {
+      const existingPantryItem = pantry.find(
         pantryItem => pantryItem.name.toLowerCase() === item.item.toLowerCase()
       );
       if (existingPantryItem) {
@@ -115,93 +79,56 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         });
         return;
       }
-      
-      const purchasesCol = collection(firestore, 'users', user.uid, 'purchases');
-      const pantryCol = collection(firestore, 'users', user.uid, 'pantry');
 
-      const newPurchaseRef = doc(purchasesCol);
-      const newPantryRef = doc(pantryCol);
-
-      const batch = writeBatch(firestore);
-
+      const purchaseId = `purchase-${Date.now()}`;
       const newPurchase: Purchase = {
         ...item,
-        id: newPurchaseRef.id,
-        userId: user.uid,
+        id: purchaseId,
+        userId: 'local-user',
+        date: new Date().toISOString().split('T')[0],
       };
 
       const newPantryItem: PantryItem = {
-        id: newPantryRef.id,
+        id: `pantry-${Date.now()}`,
+        userId: 'local-user',
         name: newPurchase.item,
         purchaseId: newPurchase.id,
         expiryDate: newPurchase.expiryDate,
-        userId: user.uid,
       };
 
-      batch.set(newPurchaseRef, newPurchase);
-      batch.set(newPantryRef, newPantryItem);
-
-      try {
-        await batch.commit();
-        toast({
-            title: 'Item Added',
-            description: `${item.item} has been added to your pantry and purchase history.`,
-        });
-      } catch (e) {
-        console.error("Error adding purchase and pantry item:", e);
-        toast({
-            variant: 'destructive',
-            title: 'Error',
-            description: 'Could not add the item. Please try again.',
-        });
-      }
+      setPurchases(prev => [...prev, newPurchase]);
+      setPantry(prev => [...prev, newPantryItem]);
+      
+      toast({
+        title: 'Item Added',
+        description: `${item.item} has been added to your pantry and purchase history.`,
+      });
     },
-    [user, firestore, pantry, toast]
+    [pantry, toast]
   );
   
   const toggleShoppingListItem = useCallback((itemId: string, isCompleted: boolean) => {
-    if(!user) return;
-    const docRef = doc(firestore, 'users', user.uid, 'shoppingList', itemId);
-    updateDocumentNonBlocking(docRef, { isCompleted: !isCompleted });
-  }, [user, firestore]);
+    setShoppingList(prev =>
+      prev.map(item =>
+        item.id === itemId ? { ...item, isCompleted: !isCompleted } : item
+      )
+    );
+  }, []);
 
+  const removeShoppingListItem = useCallback((itemId: string) => {
+      setShoppingList(prev => prev.filter(item => item.id !== itemId));
+    }, []);
 
-  const removeShoppingListItem = useCallback(
-    (itemId: string) => {
-      if (!user) return;
-      const docRef = doc(firestore, 'users', user.uid, 'shoppingList', itemId);
-      deleteDocumentNonBlocking(docRef);
-    },
-    [user, firestore]
-  );
-
-  const clearCompletedItems = useCallback(async () => {
-    if (!user || !shoppingList) return;
-    const batch = writeBatch(firestore);
-    shoppingList.forEach(item => {
-      if (item.isCompleted) {
-        const docRef = doc(firestore, 'users', user.uid, 'shoppingList', item.id);
-        batch.delete(docRef);
-      }
-    });
-    try {
-        await batch.commit();
-    } catch(e) {
-        console.error("Error clearing completed items:", e);
-        toast({
-            variant: 'destructive',
-            title: 'Error',
-            description: 'Could not clear completed items. Please try again.',
-        });
-    }
-  }, [user, firestore, shoppingList, toast]);
+  const clearCompletedItems = useCallback(() => {
+    setShoppingList(prev => prev.filter(item => !item.isCompleted));
+    }, []);
 
   return (
     <AppContext.Provider
       value={{
-        purchases: purchases || [],
-        pantry: pantry || [],
-        shoppingList: shoppingList || [],
+        purchases,
+        pantry,
+        shoppingList,
         isLoading,
         addPurchase,
         removeFromPantry,

@@ -73,6 +73,7 @@ export function AddItemDialog() {
       price: 0,
       supermarket: '',
       calories: '' as any,
+      expiryDate: undefined,
     },
   });
 
